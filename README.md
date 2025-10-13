@@ -5,10 +5,12 @@
 ## 📸 Screenshots
 
 ### Voice Pronunciation Feature
-![Voice Pronunciation](./media/1.png)
+
+<img alt="Voice Pronunciation" src="./media/1.png"/>
 
 ### Translation and Word Analysis
-![Translation Demo](./media/2.jpg)
+
+<img alt="Translation Demo" src="./media/2.jpg"/>
 
 ## ✨ Features
 
