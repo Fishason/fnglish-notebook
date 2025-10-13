@@ -82,7 +82,7 @@ export const ClaudeInput: React.FC<ClaudeInputProps> = ({
         paddingX={1}
         paddingY={0}
       >
-        <Box flexDirection="row" alignItems="center" width="100%">
+        <Box flexDirection="row" alignItems="center">
           <Text color={isFocused ? "cyan" : "gray"}>▶ </Text>
           <Box flexGrow={1}>
             {inputComponent}

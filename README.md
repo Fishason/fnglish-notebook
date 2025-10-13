@@ -2,16 +2,25 @@
 
 🚀 **A powerful CLI tool for English learning with real-time translation and intelligent note-taking**
 
+## 📸 Screenshots
+
+### Voice Pronunciation Feature
+![Voice Pronunciation](./media/1.png)
+
+### Translation and Word Analysis
+![Translation Demo](./media/2.jpg)
+
 ## ✨ Features
 
 - 🖼️ **Image Translation**: Copy and paste images from clipboard for instant translation
 - 📝 **Text Translation**: Fast and accurate text translation powered by Tencent Cloud
+- 🔊 **Voice Pronunciation**: Real-time text-to-speech with natural English pronunciation
 - 🤖 **AI Word Analysis**: Intelligent word analysis with definitions, examples, and usage
 - 📚 **Notion Integration**: Automatic vocabulary saving to your Notion database
 - 🎯 **Adaptive Learning**: Content adapted to your English proficiency level
 - ⌨️ **Intuitive Interface**: Clean terminal UI with keyboard shortcuts
 
-## 🎥 Quick Demo
+## 🎥 Quick Start
 
 ```bash
 # Install globally
@@ -107,9 +116,15 @@ On first run, the app will guide you through the configuration:
 3. Image text will be extracted, translated, and analyzed
 4. Vocabulary automatically saved to Notion
 
+### Voice Pronunciation
+1. Type English text in the input box
+2. Press `Ctrl+S` to hear the pronunciation
+3. High-quality Google Text-to-Speech with natural female voice
+
 ### Keyboard Shortcuts
 - `Ctrl+C`: Exit application
 - `Ctrl+V`: Paste and translate image from clipboard
+- `Ctrl+S`: Play voice pronunciation of input text
 - `Enter`: Submit text for translation
 
 ## 📁 Configuration
@@ -124,6 +139,11 @@ Configuration is stored in `~/.fnglish-notebook` and includes:
 ### Tencent Cloud Translation
 - **Text Translation**: Real-time text translation
 - **Image Translation**: OCR and translation of images
+- **Built-in Configuration**: No additional setup required
+
+### Google Text-to-Speech
+- **Voice Quality**: High-quality natural female voice (en-US-Standard-H)
+- **Language**: American English pronunciation
 - **Built-in Configuration**: No additional setup required
 
 ### Grok AI
@@ -185,6 +205,7 @@ MIT License - see LICENSE file for details
 ## 🙏 Acknowledgments
 
 - [Tencent Cloud](https://cloud.tencent.com/) for translation services
+- [Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech) for voice pronunciation
 - [Grok AI](https://grok.com/) for intelligent word analysis  
 - [Notion](https://notion.so/) for note-taking integration
 - [Ink](https://github.com/vadimdemedes/ink) for beautiful terminal UI

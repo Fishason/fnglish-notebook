@@ -7,6 +7,7 @@ import { ClaudeInput } from './ClaudeInput.js';
 import { TencentTranslationService } from '../services/tencent.js';
 import { GrokService } from '../services/grok.js';
 import { NotionService } from '../services/notion.js';
+import { SpeechService } from '../services/speech.js';
 import { ClipboardManager } from '../utils/clipboard.js';
 export const MainScreen = ({ config }) => {
     const [input, setInput] = useState('');
@@ -20,6 +21,7 @@ export const MainScreen = ({ config }) => {
     const grokService = new GrokService(config);
     const notionService = new NotionService(config);
     const clipboardManager = new ClipboardManager();
+    const speechService = new SpeechService('AIzaSyDBWchIinFsfLUD510QqvFzjvzSSZRglkw');
     useEffect(() => {
         const setupServices = async () => {
             // 初始化Notion数据库
@@ -27,7 +29,7 @@ export const MainScreen = ({ config }) => {
         };
         setupServices();
     }, []);
-    // 监听Ctrl+V键盘事件
+    // 监听Ctrl+V和Ctrl+S键盘事件
     useInput((input, key) => {
         if (key.ctrl && input === 'v') {
             // 立即处理剪贴板图片
@@ -35,6 +37,16 @@ export const MainScreen = ({ config }) => {
             // 延迟清空输入框，确保'v'字符不会显示
             setTimeout(() => {
                 setInput('');
+            }, 0);
+            return;
+        }
+        if (key.ctrl && input === 's') {
+            // 播放输入框中的文本
+            handleSpeech();
+            // 延迟清空输入框中可能输入的's'字符，确保's'字符不会显示
+            setTimeout(() => {
+                // 如果输入框最后一个字符是's'，则移除它
+                setInput(prev => prev.endsWith('s') ? prev.slice(0, -1) : prev);
             }, 0);
             return;
         }
@@ -154,10 +166,26 @@ export const MainScreen = ({ config }) => {
         }
         setIsLoading(false);
     };
+    const handleSpeech = async () => {
+        if (!input.trim())
+            return;
+        setIsLoading(true);
+        setError('');
+        try {
+            setStatus('正在播放语音...');
+            await speechService.speakText(input.trim());
+            setStatus('语音播放完成');
+            setTimeout(() => setStatus(''), 2000);
+        }
+        catch (err) {
+            setError(err instanceof Error ? err.message : '语音播放失败');
+        }
+        setIsLoading(false);
+    };
     const handleSubmit = (value) => {
         handleTranslation(value);
         setInput('');
     };
-    return (_jsxs(Box, { flexDirection: "column", children: [_jsx(Logo, {}), _jsx(Box, { justifyContent: "flex-end", children: _jsx(Text, { color: "gray", dimColor: true, children: "Ctrl+C \u9000\u51FA" }) }), _jsx(ClaudeInput, { value: input, onChange: setInput, onSubmit: handleSubmit, placeholder: "\u82F1\u6587\u5355\u8BCD/\u53E5\u5B50 | \u6216\u6309Ctrl+V\u7C98\u8D34\u56FE\u7247...", label: "\uD83D\uDD24 \u8F93\u5165\u7FFB\u8BD1\u5185\u5BB9:" }), isLoading && (_jsxs(Box, { marginTop: 1, children: [_jsx(Spinner, { type: "dots" }), _jsxs(Text, { color: "cyan", children: [" ", status || '处理中...'] })] })), status && !isLoading && (_jsxs(Text, { color: "green", children: ["\u2728 ", status] })), error && (_jsxs(Text, { color: "red", children: ["\u274C ", error] })), translationResult && (_jsxs(Box, { flexDirection: "column", marginTop: 1, paddingX: 1, borderStyle: "round", borderColor: "cyan", children: [_jsxs(Text, { color: "cyan", bold: true, children: ["\uD83D\uDCDD ", translationResult.original] }), _jsxs(Text, { color: "green", children: ["\u279C ", translationResult.translated] })] }))] }));
+    return (_jsxs(Box, { flexDirection: "column", children: [_jsx(Logo, {}), _jsx(Box, { justifyContent: "flex-end", children: _jsx(Text, { color: "gray", dimColor: true, children: "Ctrl+C \u9000\u51FA | Ctrl+S \u8BED\u97F3\u64AD\u653E" }) }), _jsx(ClaudeInput, { value: input, onChange: setInput, onSubmit: handleSubmit, placeholder: "\u952E\u5165\u5355\u8BCD/\u53E5\u5B50 | \u6216\u6309Ctrl+V\u7C98\u8D34\u56FE\u7247 | Ctrl+S\u53D1\u97F3\u64AD\u653E", label: "\uD83D\uDD24 \u8F93\u5165\u7FFB\u8BD1\u5185\u5BB9:" }), isLoading && (_jsxs(Box, { children: [_jsx(Spinner, { type: "dots" }), _jsxs(Text, { color: "cyan", children: [" ", status || '处理中...'] })] })), status && !isLoading && (_jsxs(Text, { color: "green", children: ["\u2728 ", status] })), error && (_jsxs(Text, { color: "red", children: ["\u274C ", error] })), translationResult && (_jsxs(Box, { flexDirection: "column", marginTop: 1, paddingX: 1, borderStyle: "round", borderColor: "cyan", children: [_jsxs(Text, { color: "cyan", bold: true, children: ["\uD83D\uDCDD ", translationResult.original] }), _jsxs(Text, { color: "green", children: ["\u279C ", translationResult.translated] })] }))] }));
 };
 //# sourceMappingURL=MainScreen.js.map

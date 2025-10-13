@@ -6,6 +6,7 @@ import { ClaudeInput } from './ClaudeInput.js';
 import { TencentTranslationService } from '../services/tencent.js';
 import { GrokService } from '../services/grok.js';
 import { NotionService } from '../services/notion.js';
+import { SpeechService } from '../services/speech.js';
 import { ClipboardManager } from '../utils/clipboard.js';
 import type { Config, TranslationResult, WordInfo } from '../utils/types.js';
 
@@ -26,6 +27,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ config }) => {
   const grokService = new GrokService(config);
   const notionService = new NotionService(config);
   const clipboardManager = new ClipboardManager();
+  const speechService = new SpeechService('AIzaSyDBWchIinFsfLUD510QqvFzjvzSSZRglkw');
 
   useEffect(() => {
     const setupServices = async () => {
@@ -36,7 +38,7 @@ export const MainScreen: React.FC<MainScreenProps> = ({ config }) => {
     setupServices();
   }, []);
 
-  // 监听Ctrl+V键盘事件
+  // 监听Ctrl+V和Ctrl+S键盘事件
   useInput((input, key) => {
     if (key.ctrl && input === 'v') {
       // 立即处理剪贴板图片
@@ -45,6 +47,18 @@ export const MainScreen: React.FC<MainScreenProps> = ({ config }) => {
       // 延迟清空输入框，确保'v'字符不会显示
       setTimeout(() => {
         setInput('');
+      }, 0);
+      return;
+    }
+    
+    if (key.ctrl && input === 's') {
+      // 播放输入框中的文本
+      handleSpeech();
+      
+      // 延迟清空输入框中可能输入的's'字符，确保's'字符不会显示
+      setTimeout(() => {
+        // 如果输入框最后一个字符是's'，则移除它
+        setInput(prev => prev.endsWith('s') ? prev.slice(0, -1) : prev);
       }, 0);
       return;
     }
@@ -177,6 +191,24 @@ export const MainScreen: React.FC<MainScreenProps> = ({ config }) => {
     setIsLoading(false);
   };
 
+  const handleSpeech = async () => {
+    if (!input.trim()) return;
+
+    setIsLoading(true);
+    setError('');
+    
+    try {
+      setStatus('正在播放语音...');
+      await speechService.speakText(input.trim());
+      setStatus('语音播放完成');
+      setTimeout(() => setStatus(''), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '语音播放失败');
+    }
+    
+    setIsLoading(false);
+  };
+
   const handleSubmit = (value: string) => {
     handleTranslation(value);
     setInput('');
@@ -187,19 +219,19 @@ export const MainScreen: React.FC<MainScreenProps> = ({ config }) => {
       <Logo />
       
       <Box justifyContent="flex-end">
-        <Text color="gray" dimColor>Ctrl+C 退出</Text>
+        <Text color="gray" dimColor>Ctrl+C 退出 | Ctrl+S 语音播放</Text>
       </Box>
 
       <ClaudeInput
         value={input}
         onChange={setInput}
         onSubmit={handleSubmit}
-        placeholder="英文单词/句子 | 或按Ctrl+V粘贴图片..."
+        placeholder="键入单词/句子 | 或按Ctrl+V粘贴图片 | Ctrl+S发音播放"
         label="🔤 输入翻译内容:"
       />
 
       {isLoading && (
-        <Box marginTop={1}>
+        <Box>
           <Spinner type="dots" />
           <Text color="cyan"> {status || '处理中...'}</Text>
         </Box>
