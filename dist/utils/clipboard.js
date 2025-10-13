@@ -1,6 +1,5 @@
 import clipboardy from 'clipboardy';
 import Jimp from 'jimp';
-import * as clipboardFiles from 'clipboard-files';
 import fs from 'fs';
 import { execSync } from 'child_process';
 import os from 'os';
@@ -9,21 +8,25 @@ export class ClipboardManager {
     async getImageBase64() {
         try {
             // console.log('=== 开始检查剪贴板图片 ===');
-            // 方法1: 尝试使用clipboard-files库读取剪贴板文件
-            try {
-                const files = await clipboardFiles.readFiles();
-                if (files && files.length > 0) {
-                    for (const file of files) {
-                        if (this.isImageFile(file)) {
-                            const fileBuffer = fs.readFileSync(file);
-                            const base64 = fileBuffer.toString('base64');
-                            return base64;
-                        }
-                    }
-                }
+            // 方法1: 平台特定的剪贴板图片获取 (主要方法)
+            const platform = os.platform();
+            if (platform === 'darwin') {
+                // macOS: 使用osascript
+                const macResult = await this.getMacClipboardImage();
+                if (macResult)
+                    return macResult;
             }
-            catch (err) {
-                // clipboard-files方法失败，继续尝试其他方法
+            else if (platform === 'win32') {
+                // Windows: 使用PowerShell
+                const winResult = await this.getWindowsClipboardImage();
+                if (winResult)
+                    return winResult;
+            }
+            else if (platform === 'linux') {
+                // Linux: 使用xclip
+                const linuxResult = await this.getLinuxClipboardImage();
+                if (linuxResult)
+                    return linuxResult;
             }
             // 方法2: 检查剪贴板文本内容
             try {
@@ -44,42 +47,6 @@ export class ClipboardManager {
             }
             catch (err) {
                 // 剪贴板文本检查失败，继续尝试其他方法
-            }
-            // 方法3: 在macOS上尝试使用命令行工具
-            if (os.platform() === 'darwin') {
-                try {
-                    const tempDir = os.tmpdir();
-                    const tempImagePath = path.join(tempDir, `clipboard_${Date.now()}.png`);
-                    // 尝试使用osascript保存剪贴板图片
-                    const script = `
-            tell application "System Events"
-              try
-                set the clipboard to (the clipboard as «class PNGf»)
-                set imageData to (the clipboard as «class PNGf»)
-                set fileRef to open for access POSIX file "${tempImagePath}" with write permission
-                write imageData to fileRef
-                close access fileRef
-                return "success"
-              on error
-                return "error"
-              end try
-            end tell
-          `;
-                    const result = execSync(`osascript -e '${script}'`, {
-                        encoding: 'utf8',
-                        timeout: 5000
-                    }).trim();
-                    if (result === 'success' && fs.existsSync(tempImagePath)) {
-                        const fileBuffer = fs.readFileSync(tempImagePath);
-                        const base64 = fileBuffer.toString('base64');
-                        // 清理临时文件
-                        fs.unlinkSync(tempImagePath);
-                        return base64;
-                    }
-                }
-                catch (err) {
-                    // macOS命令行方法失败
-                }
             }
             return null;
         }
@@ -168,6 +135,93 @@ export class ClipboardManager {
         };
         const interval = setInterval(checkClipboard, 500);
         return () => clearInterval(interval);
+    }
+    // 平台特定的剪贴板图片获取方法
+    async getMacClipboardImage() {
+        try {
+            const tempDir = os.tmpdir();
+            const tempImagePath = path.join(tempDir, `clipboard_${Date.now()}.png`);
+            const script = `
+        tell application "System Events"
+          try
+            set the clipboard to (the clipboard as «class PNGf»)
+            set imageData to (the clipboard as «class PNGf»)
+            set fileRef to open for access POSIX file "${tempImagePath}" with write permission
+            write imageData to fileRef
+            close access fileRef
+            return "success"
+          on error
+            return "error"
+          end try
+        end tell
+      `;
+            const result = execSync(`osascript -e '${script}'`, {
+                encoding: 'utf8',
+                timeout: 5000
+            }).trim();
+            if (result === 'success' && fs.existsSync(tempImagePath)) {
+                const fileBuffer = fs.readFileSync(tempImagePath);
+                const base64 = fileBuffer.toString('base64');
+                fs.unlinkSync(tempImagePath);
+                return base64;
+            }
+        }
+        catch (err) {
+            // macOS方法失败
+        }
+        return null;
+    }
+    async getWindowsClipboardImage() {
+        try {
+            const tempDir = os.tmpdir();
+            const tempImagePath = path.join(tempDir, `clipboard_${Date.now()}.png`);
+            // PowerShell脚本保存剪贴板图片
+            const powershellScript = `
+        Add-Type -AssemblyName System.Windows.Forms
+        Add-Type -AssemblyName System.Drawing
+        $clipboard = [System.Windows.Forms.Clipboard]::GetImage()
+        if ($clipboard -ne $null) {
+          $clipboard.Save("${tempImagePath.replace(/\\/g, '\\\\')}", [System.Drawing.Imaging.ImageFormat]::Png)
+          Write-Output "success"
+        } else {
+          Write-Output "error"
+        }
+      `;
+            const result = execSync(`powershell -Command "${powershellScript}"`, {
+                encoding: 'utf8',
+                timeout: 5000
+            }).trim();
+            if (result === 'success' && fs.existsSync(tempImagePath)) {
+                const fileBuffer = fs.readFileSync(tempImagePath);
+                const base64 = fileBuffer.toString('base64');
+                fs.unlinkSync(tempImagePath);
+                return base64;
+            }
+        }
+        catch (err) {
+            // Windows方法失败
+        }
+        return null;
+    }
+    async getLinuxClipboardImage() {
+        try {
+            const tempDir = os.tmpdir();
+            const tempImagePath = path.join(tempDir, `clipboard_${Date.now()}.png`);
+            // 使用xclip保存剪贴板图片
+            execSync(`xclip -selection clipboard -t image/png -o > "${tempImagePath}"`, {
+                timeout: 5000
+            });
+            if (fs.existsSync(tempImagePath) && fs.statSync(tempImagePath).size > 0) {
+                const fileBuffer = fs.readFileSync(tempImagePath);
+                const base64 = fileBuffer.toString('base64');
+                fs.unlinkSync(tempImagePath);
+                return base64;
+            }
+        }
+        catch (err) {
+            // Linux方法失败
+        }
+        return null;
     }
 }
 //# sourceMappingURL=clipboard.js.map

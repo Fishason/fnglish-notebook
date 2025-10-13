@@ -28,43 +28,49 @@ fnb
 
 - Node.js 18.0.0 or higher
 - **Grok API Key**: Get from [Grok AI](https://console.x.ai/)
-- **Notion Integration & Page Setup** (详细步骤见下方)
+- **Notion Integration & Page Setup** (detailed steps below)
 
-## 🔧 Notion 集成配置 (重要!)
+## 🌍 Platform Support
 
-### 步骤 1: 创建 Notion Integration
-1. 访问 [Notion Integrations](https://www.notion.so/my-integrations)
-2. 点击 "**New integration**"
-3. 填写集成信息:
-   - **Name**: 填写 `Fnglish Notebook` 或任意名称
-   - **Associated workspace**: 选择你的工作区
-   - **Type**: 选择 "Internal integration"
-4. 点击 "**Submit**" 创建
-5. **复制 Integration Token** (格式: `secret_xxx...`) - 这就是你的 **Notion API Key**
+✅ **Windows**: PowerShell support (Windows 7+)  
+✅ **macOS**: Native AppleScript support  
+✅ **Linux**: Requires `xclip` installation (Ubuntu: `sudo apt install xclip`)
 
-### 步骤 2: 创建并配置 Notion 页面
-1. 在 Notion 中创建一个新页面 (用于存储学习数据)
-2. 在页面右上角点击 "**Share**"
-3. 点击 "**Add people, emails, groups, or integrations**"
-4. 搜索并选择你刚创建的 integration (如 "Fnglish Notebook")
-5. 选择权限为 "**Can edit**"
-6. 点击 "**Invite**"
+## 🔧 Notion Integration Setup (Important!)
 
-### 步骤 3: 获取页面 ID
-1. 点击页面右上角的 "**Share**" → "**Copy link**"
-2. 获取的链接格式如: `https://www.notion.so/workspace/页面标题-32位字符串?xxx`
-3. **Page ID 就是 URL 中的后32位字符串**
+### Step 1: Create Notion Integration
+1. Visit [Notion Integrations](https://www.notion.so/my-integrations)
+2. Click "**New integration**"
+3. Fill in the integration details:
+   - **Name**: Enter `Fnglish Notebook` or any name you prefer
+   - **Associated workspace**: Select your workspace
+   - **Type**: Choose "Internal integration"
+4. Click "**Submit**" to create
+5. **Copy the Integration Token** (format: `secret_xxx...`) - this is your **Notion API Key**
+
+### Step 2: Create and Configure Notion Page
+1. Create a new page in Notion (for storing learning data)
+2. Click "**Share**" in the top-right corner of the page
+3. Click "**Add people, emails, groups, or integrations**"
+4. Search and select the integration you just created (e.g., "Fnglish Notebook")
+5. Set permissions to "**Can edit**"
+6. Click "**Invite**"
+
+### Step 3: Get Page ID
+1. Click "**Share**" in the top-right corner → "**Copy link**"
+2. The link format looks like: `https://www.notion.so/workspace/page-title-32-character-string?xxx`
+3. **The Page ID is the 32-character string in the URL**
    
-   **例如**:
+   **Example**:
    ```
-   链接: https://www.notion.so/myworkspace/English-Learning-1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p?pvs=4
+   Link: https://www.notion.so/myworkspace/English-Learning-1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p?pvs=4
    Page ID: 1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p
    ```
 
-### ⚠️ 重要提醒
-- **必须先添加 Integration 到页面**，否则API无法访问页面
-- **Page ID 是32位字符串**，不包括 URL 中的其他部分
-- **确保 Integration 有编辑权限**，才能创建数据库和添加内容
+### ⚠️ Important Reminders
+- **You must add the Integration to the page first**, otherwise the API cannot access the page
+- **Page ID is a 32-character string**, excluding other parts in the URL
+- **Ensure the Integration has edit permissions** to create databases and add content
 
 ## 🛠️ Installation
 
@@ -74,19 +80,19 @@ npm install -g fnglish-notebook
 
 ## ⚙️ Setup
 
-**重要**: 请先完成上面的 **Notion 集成配置** 步骤，然后再运行应用！
+**Important**: Please complete the **Notion Integration Setup** steps above before running the application!
 
-首次运行时，应用会引导你完成配置:
+On first run, the app will guide you through the configuration:
 
-1. **English Level**: 选择你的英文水平
-   - `middle_school`: 中学水平 - 基础词汇和简单语法
-   - `university`: 大学水平 - 中等词汇和复杂语法结构  
-   - `study_abroad`: 留学水平 - 高级词汇，适合学术/专业用途
+1. **English Level**: Choose your English proficiency level
+   - `middle_school`: Middle school level - Basic vocabulary and simple grammar
+   - `university`: University level - Intermediate vocabulary and complex grammar structures  
+   - `study_abroad`: Study abroad level - Advanced vocabulary for academic/professional use
 
-2. **API Keys 配置**:
-   - **Grok API Key**: 从 [Grok Console](https://console.x.ai/) 获取，用于AI单词分析
-   - **Notion API Key**: 按照上面步骤1获取的 Integration Token (`secret_xxx...`)
-   - **Notion Page ID**: 按照上面步骤3获取的32位页面ID
+2. **API Keys Configuration**:
+   - **Grok API Key**: Get from [Grok Console](https://console.x.ai/) for AI word analysis
+   - **Notion API Key**: Integration Token from Step 1 above (`secret_xxx...`)
+   - **Notion Page ID**: 32-character page ID from Step 3 above
 
 ## 🚀 Usage
 
@@ -127,14 +133,14 @@ Configuration is stored in `~/.fnglish-notebook` and includes:
 
 ### Notion Database
 - **Auto-creation**: Creates inline databases automatically
-- **Columns**: 单词 (Word), 词性 (Part of Speech), 释义 (Definition), 例句 (Example), 例句翻译 (Example Translation), 创建时间 (Created Time)
+- **Columns**: Word, Part of Speech, Definition, Example, Example Translation, Created Time
 - **Smart Deduplication**: Prevents duplicate entries
 
 ## 🎯 Learning Levels
 
-- **Middle School (中学水平)**: Age-appropriate vocabulary and basic grammar structures
-- **University (大学水平)**: Complex vocabulary and advanced sentence patterns  
-- **Study Abroad (留学水平)**: Academic and professional terminology for international students
+- **Middle School**: Age-appropriate vocabulary and basic grammar structures
+- **University**: Complex vocabulary and advanced sentence patterns  
+- **Study Abroad**: Academic and professional terminology for international students
 
 ## 🐛 Troubleshooting
 
@@ -146,16 +152,27 @@ Configuration is stored in `~/.fnglish-notebook` and includes:
    - Check if image contains clear, readable text
 
 2. **Notion database not saving**:
-   - ✅ **检查 Integration 是否已添加到页面**: 最常见问题！必须先按照上面步骤2将integration邀请到页面
-   - ✅ **确认 API Key 格式**: 应该是 `secret_` 开头的长字符串
-   - ✅ **验证 Page ID**: 必须是32位字符串，从分享链接中提取
-   - ✅ **检查权限**: Integration 必须有页面的编辑权限 (Can edit)
-   - 错误示例: `Notion API error: Object not found` → 通常是integration未添加到页面
+   - ✅ **Check if Integration is added to page**: Most common issue! Must follow Step 2 above to invite integration to page
+   - ✅ **Verify API Key format**: Should be a long string starting with `secret_`
+   - ✅ **Validate Page ID**: Must be a 32-character string extracted from the share link
+   - ✅ **Check permissions**: Integration must have edit permissions (Can edit) for the page
+   - Error example: `Notion API error: Object not found` → Usually means integration not added to page
 
 3. **API errors**:
    - Verify all API keys are valid
    - Check internet connection
    - Ensure API quotas are not exceeded
+
+4. **Platform-specific issues**:
+   - **Windows**: 
+     - Ensure PowerShell is available (pre-installed on Windows 7+)
+     - If image paste fails, try running terminal as administrator
+     - Encountering `clipboard-files` errors? Check [Windows Fix Guide](./WINDOWS-FIX.md)
+   - **Linux**: 
+     - Image paste requires xclip installation: `sudo apt install xclip`
+     - May need additional configuration on Wayland desktop environments
+   - **macOS**: 
+     - System will request accessibility permissions, please allow terminal access
 
 ## 🤝 Contributing
 

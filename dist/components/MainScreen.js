@@ -60,8 +60,8 @@ export const MainScreen = ({ config }) => {
             setStatus('正在翻译...');
             const translation = await tencentService.translateText(text);
             setTranslationResult(translation);
-            // 2. 如果是单个单词，生成详细信息
-            if (text.trim().split(' ').length === 1 && /^[a-zA-Z]+$/.test(text.trim())) {
+            // 2. 如果是单个单词或连字符单词，生成详细信息
+            if (text.trim().split(' ').length === 1 && /^[a-zA-Z-]+$/.test(text.trim())) {
                 setStatus('正在生成单词信息...');
                 const info = await grokService.generateWordInfo(text.trim(), config.englishLevel);
                 setWordInfo(info);
@@ -115,8 +115,8 @@ export const MainScreen = ({ config }) => {
                 }
                 // 检查是否找到了英文内容
                 if (originalEnglishText && /[a-zA-Z]/.test(originalEnglishText)) {
-                    // 提取英文单词
-                    const words = originalEnglishText.match(/\b[a-zA-Z]+\b/g);
+                    // 提取英文单词（包括连字符单词）
+                    const words = originalEnglishText.match(/\b[a-zA-Z]+(?:-[a-zA-Z]+)*\b/g);
                     if (words && words.length > 0) {
                         // 取第一个有效单词（长度大于2）
                         const mainWord = words.find(word => word.length > 2)?.toLowerCase() || words[0].toLowerCase();

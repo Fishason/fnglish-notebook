@@ -7,4 +7,7 @@ export declare class ClipboardManager {
     private looksLikeBase64Image;
     convertFileToBase64(filePath: string): Promise<string>;
     watchClipboard(callback: (content: string, isImage: boolean) => void): Promise<() => void>;
+    private getMacClipboardImage;
+    private getWindowsClipboardImage;
+    private getLinuxClipboardImage;
 }
