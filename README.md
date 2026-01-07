@@ -2,6 +2,7 @@
 
 🚀 **A powerful CLI tool for English learning with real-time translation and intelligent note-taking**
 
+[中文文档](./README_zh-CN.md)
 ## 📸 Screenshots
 
 ### Voice Pronunciation Feature
@@ -213,7 +214,7 @@ MIT License - see LICENSE file for details
 ## 🙏 Acknowledgments
 
 - [Tencent Cloud](https://cloud.tencent.com/) for translation services
-- [Google Cloud Text-to-Speech](https://cloud.google.com/text-to-speech) for voice pronunciation
+- [Google Cloud Text-to-Speech](httpshttps://cloud.google.com/text-to-speech) for voice pronunciation
 - [Grok AI](https://grok.com/) for intelligent word analysis  
 - [Notion](https://notion.so/) for note-taking integration
 - [Ink](https://github.com/vadimdemedes/ink) for beautiful terminal UI
