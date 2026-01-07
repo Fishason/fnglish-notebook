@@ -1,5 +1,5 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Text, Box, useInput } from 'ink';
 import Spinner from 'ink-spinner';
 import { Logo } from './Logo.js';
@@ -16,19 +16,14 @@ export const MainScreen = ({ config }) => {
     const [wordInfo, setWordInfo] = useState(null);
     const [status, setStatus] = useState('');
     const [error, setError] = useState('');
-    const [databaseId, setDatabaseId] = useState('');
+    // Use config.notionDatabaseId directly.
+    const databaseId = config.notionDatabaseId;
     const tencentService = new TencentTranslationService();
     const grokService = new GrokService(config);
     const notionService = new NotionService(config);
     const clipboardManager = new ClipboardManager();
     const speechService = new SpeechService('AIzaSyDBWchIinFsfLUD510QqvFzjvzSSZRglkw');
-    useEffect(() => {
-        const setupServices = async () => {
-            // 初始化Notion数据库
-            await initializeNotionDatabase();
-        };
-        setupServices();
-    }, []);
+    // Removed initializeNotionDatabase useEffect since we now use ID from config directly.
     // 监听Ctrl+V和Ctrl+S键盘事件
     useInput((input, key) => {
         if (key.ctrl && input === 'v') {
@@ -51,15 +46,6 @@ export const MainScreen = ({ config }) => {
             return;
         }
     });
-    const initializeNotionDatabase = async () => {
-        try {
-            const dbId = await notionService.findOrCreateDatabase();
-            setDatabaseId(dbId);
-        }
-        catch (err) {
-            setError(`Notion数据库初始化失败: ${err instanceof Error ? err.message : '未知错误'}`);
-        }
-    };
     const handleTranslation = async (text) => {
         if (!text.trim())
             return;

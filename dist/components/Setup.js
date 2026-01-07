@@ -39,28 +39,49 @@ export const Setup = ({ onComplete }) => {
                     break;
                 case 'notion_token':
                     setConfig(prev => ({ ...prev, notionToken: value }));
-                    setStep('notion_page');
+                    setStep('notion_database');
                     break;
-                case 'notion_page':
-                    // 测试Notion连接
-                    const notionConfig = { ...config, notionToken: config.notionToken, notionPageId: value };
-                    const notionService = new NotionService(notionConfig);
-                    const notionConnected = await notionService.testConnection();
-                    if (!notionConnected) {
-                        setError('Notion连接失败，请检查Token和页面ID');
+                case 'notion_database':
+                    // 验证数据库ID
+                    const notionConfigDb = {
+                        ...config,
+                        notionToken: config.notionToken,
+                        notionDatabaseId: value
+                    };
+                    const notionServiceDb = new NotionService(notionConfigDb);
+                    const dbConnected = await notionServiceDb.testConnection();
+                    if (!dbConnected) {
+                        setError('无法访问Notion数据库，请检查Token和数据库ID');
                         setIsLoading(false);
                         return;
                     }
-                    const finalConfig = {
+                    setConfig(prev => ({ ...prev, notionDatabaseId: value }));
+                    setStep('notion_template');
+                    break;
+                case 'notion_template':
+                    setConfig(prev => ({ ...prev, notionTemplateId: value }));
+                    setStep('notion_deck');
+                    break;
+                case 'notion_deck':
+                    // Validate deck id (which is a page ID)
+                    // We can reuse testConnection style logic or just a quick page retrieve
+                    // But NotionService needs to be fully instantiated to check properly
+                    // For now, let's just save it. Validation happens when adding words usually.
+                    // Or we can try to retrieve the page to confirm it exists.
+                    const notionConfigFull = {
                         ...config,
-                        notionPageId: value
+                        notionDeckId: value
                     };
-                    setConfig(finalConfig);
+                    // Optional: Verify deck page exists
+                    const notionServiceDeck = new NotionService(notionConfigFull);
+                    // We will add a helper to check page existence later in service if needed
+                    // For now, assume it's valid if user provides it.
+                    setConfig(prev => ({ ...prev, notionDeckId: value }));
                     setStep('testing');
                     // 进行最终测试
                     await new Promise(resolve => setTimeout(resolve, 1000));
                     setStep('complete');
-                    onComplete(finalConfig);
+                    onComplete(notionConfigFull);
                     break;
             }
         }
@@ -80,8 +101,12 @@ export const Setup = ({ onComplete }) => {
                 return (_jsxs(Box, { flexDirection: "column", children: [_jsx(ClaudeInput, { value: input, onChange: setInput, onSubmit: handleInput, placeholder: "\u8F93\u5165API\u5BC6\u94A5...", label: "\uD83E\uDD16 Grok API Key:", mask: "*" }), _jsx(Text, { color: "gray", dimColor: true, children: "docs.x.ai/docs" })] }));
             case 'notion_token':
                 return (_jsxs(Box, { flexDirection: "column", children: [_jsx(ClaudeInput, { value: input, onChange: setInput, onSubmit: handleInput, placeholder: "\u8F93\u5165Token...", label: "\uD83D\uDCDD Notion Token:", mask: "*" }), _jsx(Text, { color: "gray", dimColor: true, children: "notion.so/my-integrations" })] }));
-            case 'notion_page':
-                return (_jsxs(Box, { flexDirection: "column", children: [_jsx(ClaudeInput, { value: input, onChange: setInput, onSubmit: handleInput, placeholder: "\u8F93\u5165\u9875\u9762ID...", label: "\uD83D\uDCC4 Notion\u9875\u9762ID:" }), _jsx(Text, { color: "gray", dimColor: true, children: "\u4ECE\u9875\u9762URL\u590D\u5236ID" })] }));
+            case 'notion_database':
+                return (_jsxs(Box, { flexDirection: "column", children: [_jsx(ClaudeInput, { value: input, onChange: setInput, onSubmit: handleInput, placeholder: "\u8F93\u5165\u6570\u636E\u5E93ID...", label: "\uD83D\uDDC4\uFE0F Notion\u6570\u636E\u5E93ID:" }), _jsx(Text, { color: "gray", dimColor: true, children: "\u4ECE\u6570\u636E\u5E93\u9875\u9762URL\u590D\u5236ID" })] }));
+            case 'notion_template':
+                return (_jsxs(Box, { flexDirection: "column", children: [_jsx(ClaudeInput, { value: input, onChange: setInput, onSubmit: handleInput, placeholder: "\u8F93\u5165\u6A21\u7248\u9875\u9762ID...", label: "\uD83D\uDCCB Notion\u6A21\u7248\u9875\u9762ID:" }), _jsx(Text, { color: "gray", dimColor: true, children: "\u7528\u4E8E\u590D\u5236\u56FE\u6807\u548C\u5C01\u9762\u7684\u9875\u9762ID" })] }));
+            case 'notion_deck':
+                return (_jsxs(Box, { flexDirection: "column", children: [_jsx(ClaudeInput, { value: input, onChange: setInput, onSubmit: handleInput, placeholder: "\u8F93\u5165\u724C\u7EC4\u9875\u9762ID...", label: "\uD83C\uDFB4 Notion\u724C\u7EC4\u9875\u9762ID:" }), _jsx(Text, { color: "gray", dimColor: true, children: "\u5355\u8BCD\u5C06\u81EA\u52A8\u5173\u8054\u5230\u6B64\u724C\u7EC4(Page ID)" })] }));
             case 'testing':
                 return (_jsxs(Box, { children: [_jsx(Spinner, { type: "dots" }), _jsx(Text, { children: " \u6B63\u5728\u4FDD\u5B58\u914D\u7F6E..." })] }));
             case 'complete':

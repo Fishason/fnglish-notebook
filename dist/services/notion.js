@@ -1,117 +1,108 @@
 import { Client } from '@notionhq/client';
-import { NOTION_DATABASE_NAME, NOTION_DATABASE_PROPERTIES } from '../constants.js';
 export class NotionService {
     client;
-    pageId;
+    databaseId;
+    templateId;
+    deckId;
+    titlePropertyName = '';
     constructor(config) {
         this.client = new Client({
             auth: config.notionToken,
         });
-        this.pageId = config.notionPageId;
+        this.databaseId = config.notionDatabaseId;
+        this.templateId = config.notionTemplateId;
+        this.deckId = config.notionDeckId;
     }
-    async findOrCreateDatabase() {
+    async validateDatabase() {
         try {
-            // 首先尝试搜索现有数据库
-            const existingDatabase = await this.findDatabase();
-            if (existingDatabase) {
-                return existingDatabase.id;
+            const response = await this.client.databases.retrieve({ database_id: this.databaseId });
+            // Find the property that is of type 'title'
+            const titlePropEntry = Object.entries(response.properties).find(([_, prop]) => prop.type === 'title');
+            if (!titlePropEntry) {
+                throw new Error('提供的数据库没有标题属性 (Title property)');
             }
-            // 如果不存在，创建新数据库
-            return await this.createDatabase();
+            this.titlePropertyName = titlePropEntry[0];
+            // Check for '背面' property
+            const backProp = response.properties['背面'];
+            if (!backProp || backProp.type !== 'rich_text') {
+                throw new Error('数据库缺少“背面”属性 (Text/Rich Text type)');
+            }
+            // Check for '牌组' property if deckId is provided
+            if (this.deckId) {
+                const deckProp = response.properties['牌组'];
+                if (!deckProp || deckProp.type !== 'relation') {
+                    // Warning but maybe not error? Let's error to be safe as user configured it.
+                    throw new Error('数据库缺少“牌组”属性 (Relation type)');
+                }
+            }
+            return this.titlePropertyName;
         }
         catch (error) {
-            throw new Error(`Notion数据库操作失败: ${error instanceof Error ? error.message : '未知错误'}`);
+            throw new Error(`无法访问Notion数据库: ${error instanceof Error ? error.message : '请检查ID是否正确'}`);
         }
     }
-    async findDatabase() {
+    async getTemplatePageDetails() {
+        if (!this.templateId)
+            return { icon: null, cover: null };
         try {
-            const response = await this.client.search({
-                query: NOTION_DATABASE_NAME,
-                filter: {
-                    value: 'database',
-                    property: 'object'
-                }
-            });
-            const database = response.results.find((result) => result.object === 'database' &&
-                result.title?.[0]?.plain_text === NOTION_DATABASE_NAME);
-            return database ? {
-                id: database.id,
-                title: database.title?.[0]?.plain_text || '',
-                properties: database.properties
-            } : null;
+            const response = await this.client.pages.retrieve({ page_id: this.templateId });
+            return {
+                icon: response.icon,
+                cover: response.cover
+            };
         }
         catch {
-            return null;
+            // If template fails, just ignore it
+            return { icon: null, cover: null };
         }
     }
-    async createDatabase() {
-        // 创建行内数据库
-        const response = await this.client.databases.create({
-            parent: {
-                page_id: this.pageId
-            },
-            title: [
-                {
-                    type: 'text',
-                    text: {
-                        content: NOTION_DATABASE_NAME
-                    }
-                }
-            ],
-            properties: NOTION_DATABASE_PROPERTIES,
-            is_inline: true
-        });
-        return response.id;
-    }
     async addWordEntry(databaseId, wordInfo) {
+        // Note: databaseId argument is kept for compatibility but we mostly use this.databaseId 
+        // unless the caller passes a different one (which MainScreen might). 
+        // Ideally MainScreen should pass config.notionDatabaseId.
+        const targetDbId = databaseId || this.databaseId;
         try {
+            if (!this.titlePropertyName) {
+                await this.validateDatabase();
+            }
+            const { icon, cover } = await this.getTemplatePageDetails();
+            const content = `[${wordInfo.partOfSpeech}] ${wordInfo.definition}\n\n例句：\n${wordInfo.example}\n${wordInfo.exampleTranslation}`;
+            const properties = {
+                [this.titlePropertyName]: {
+                    title: [
+                        {
+                            text: {
+                                content: wordInfo.word
+                            }
+                        }
+                    ]
+                },
+                '背面': {
+                    rich_text: [
+                        {
+                            text: {
+                                content: content
+                            }
+                        }
+                    ]
+                }
+            };
+            if (this.deckId) {
+                properties['牌组'] = {
+                    relation: [
+                        {
+                            id: this.deckId
+                        }
+                    ]
+                };
+            }
             await this.client.pages.create({
                 parent: {
-                    database_id: databaseId
+                    database_id: targetDbId
                 },
-                properties: {
-                    '单词': {
-                        title: [
-                            {
-                                text: {
-                                    content: wordInfo.word
-                                }
-                            }
-                        ]
-                    },
-                    '词性': {
-                        select: {
-                            name: wordInfo.partOfSpeech
-                        }
-                    },
-                    '释义': {
-                        rich_text: [
-                            {
-                                text: {
-                                    content: wordInfo.definition
-                                }
-                            }
-                        ]
-                    },
-                    '例句': {
-                        rich_text: [
-                            {
-                                text: {
-                                    content: wordInfo.example
-                                }
-                            }
-                        ]
-                    },
-                    '例句翻译': {
-                        rich_text: [
-                            {
-                                text: {
-                                    content: wordInfo.exampleTranslation
-                                }
-                            }
-                        ]
-                    }
-                }
+                icon: icon,
+                cover: cover,
+                properties: properties
             });
         }
         catch (error) {
@@ -120,9 +111,7 @@ export class NotionService {
     }
     async testConnection() {
         try {
-            await this.client.pages.retrieve({
-                page_id: this.pageId
-            });
+            await this.validateDatabase();
             return true;
         }
         catch {
@@ -130,11 +119,15 @@ export class NotionService {
         }
     }
     async checkWordExists(databaseId, word) {
+        const targetDbId = databaseId || this.databaseId;
         try {
+            if (!this.titlePropertyName) {
+                await this.validateDatabase();
+            }
             const response = await this.client.databases.query({
-                database_id: databaseId,
+                database_id: targetDbId,
                 filter: {
-                    property: '单词',
+                    property: this.titlePropertyName,
                     title: {
                         equals: word
                     }

@@ -7,15 +7,6 @@ export const ENGLISH_LEVELS = [
 ];
 export const TENCENT_CLOUD_ENDPOINT = 'tmt.tencentcloudapi.com';
 export const TENCENT_CLOUD_VERSION = '2018-03-21';
-export const NOTION_DATABASE_NAME = 'fnglish-notebook';
-export const NOTION_DATABASE_PROPERTIES = {
-    '单词': { title: {} },
-    '词性': { select: { options: [] } },
-    '释义': { rich_text: {} },
-    '例句': { rich_text: {} },
-    '例句翻译': { rich_text: {} },
-    '创建时间': { created_time: {} }
-};
 export const LOGO = `
   ███████╗███╗   ██╗ ██████╗ ██╗     ██╗███████╗██╗  ██╗
   ██╔════╝████╗  ██║██╔════╝ ██║     ██║██╔════╝██║  ██║

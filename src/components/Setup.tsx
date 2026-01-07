@@ -13,7 +13,7 @@ interface SetupProps {
   onComplete: (config: Config) => void;
 }
 
-type SetupStep = 'level' | 'grok' | 'notion_token' | 'notion_page' | 'testing' | 'complete';
+type SetupStep = 'level' | 'grok' | 'notion_token' | 'notion_database' | 'notion_template' | 'notion_deck' | 'testing' | 'complete';
 
 export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
   const [step, setStep] = useState<SetupStep>('level');
@@ -52,33 +52,59 @@ export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
 
         case 'notion_token':
           setConfig(prev => ({ ...prev, notionToken: value }));
-          setStep('notion_page');
+          setStep('notion_database');
           break;
 
-        case 'notion_page':
-          // 测试Notion连接
-          const notionConfig = { ...config, notionToken: config.notionToken!, notionPageId: value } as Config;
-          const notionService = new NotionService(notionConfig);
-          const notionConnected = await notionService.testConnection();
+        case 'notion_database':
+          // 验证数据库ID
+          const notionConfigDb = { 
+            ...config, 
+            notionToken: config.notionToken!, 
+            notionDatabaseId: value 
+          } as Config;
           
-          if (!notionConnected) {
-            setError('Notion连接失败，请检查Token和页面ID');
+          const notionServiceDb = new NotionService(notionConfigDb);
+          const dbConnected = await notionServiceDb.testConnection();
+          
+          if (!dbConnected) {
+            setError('无法访问Notion数据库，请检查Token和数据库ID');
             setIsLoading(false);
             return;
           }
 
-          const finalConfig = { 
+          setConfig(prev => ({ ...prev, notionDatabaseId: value }));
+          setStep('notion_template');
+          break;
+
+        case 'notion_template':
+          setConfig(prev => ({ ...prev, notionTemplateId: value }));
+          setStep('notion_deck');
+          break;
+        
+        case 'notion_deck':
+          // Validate deck id (which is a page ID)
+          // We can reuse testConnection style logic or just a quick page retrieve
+          // But NotionService needs to be fully instantiated to check properly
+          // For now, let's just save it. Validation happens when adding words usually.
+          // Or we can try to retrieve the page to confirm it exists.
+          
+          const notionConfigFull = { 
             ...config, 
-            notionPageId: value
+            notionDeckId: value 
           } as Config;
           
-          setConfig(finalConfig);
-          setStep('testing');
+          // Optional: Verify deck page exists
+          const notionServiceDeck = new NotionService(notionConfigFull);
+          // We will add a helper to check page existence later in service if needed
+          // For now, assume it's valid if user provides it.
           
+          setConfig(prev => ({ ...prev, notionDeckId: value }));
+          setStep('testing');
+
           // 进行最终测试
           await new Promise(resolve => setTimeout(resolve, 1000));
           setStep('complete');
-          onComplete(finalConfig);
+          onComplete(notionConfigFull);
           break;
       }
     } catch (err) {
@@ -152,17 +178,45 @@ export const Setup: React.FC<SetupProps> = ({ onComplete }) => {
           </Box>
         );
 
-      case 'notion_page':
+      case 'notion_database':
         return (
           <Box flexDirection="column">
             <ClaudeInput
               value={input}
               onChange={setInput}
               onSubmit={handleInput}
-              placeholder="输入页面ID..."
-              label="📄 Notion页面ID:"
+              placeholder="输入数据库ID..."
+              label="🗄️ Notion数据库ID:"
             />
-            <Text color="gray" dimColor>从页面URL复制ID</Text>
+            <Text color="gray" dimColor>从数据库页面URL复制ID</Text>
+          </Box>
+        );
+
+      case 'notion_template':
+        return (
+          <Box flexDirection="column">
+            <ClaudeInput
+              value={input}
+              onChange={setInput}
+              onSubmit={handleInput}
+              placeholder="输入模版页面ID..."
+              label="📋 Notion模版页面ID:"
+            />
+            <Text color="gray" dimColor>用于复制图标和封面的页面ID</Text>
+          </Box>
+        );
+        
+      case 'notion_deck':
+        return (
+          <Box flexDirection="column">
+            <ClaudeInput
+              value={input}
+              onChange={setInput}
+              onSubmit={handleInput}
+              placeholder="输入牌组页面ID..."
+              label="🎴 Notion牌组页面ID:"
+            />
+            <Text color="gray" dimColor>单词将自动关联到此牌组(Page ID)</Text>
           </Box>
         );
 

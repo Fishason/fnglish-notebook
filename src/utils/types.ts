@@ -2,7 +2,9 @@ export interface Config {
   englishLevel: 'middle_school' | 'university' | 'study_abroad';
   grokApiKey: string;
   notionToken: string;
-  notionPageId: string;
+  notionDatabaseId: string;
+  notionTemplateId: string;
+  notionDeckId: string;
 }
 
 export interface TranslationResult {

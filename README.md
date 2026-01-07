@@ -23,7 +23,6 @@
 - ⌨️ **Intuitive Interface**: Clean terminal UI with keyboard shortcuts
 
 ## 🎥 Quick Start
-
 ```bash
 # Install globally
 npm install -g fnglish-notebook
@@ -49,6 +48,11 @@ fnb
 
 ## 🔧 Notion Integration Setup (Important!)
 
+### Step 0: Get Notion Template
+**Important**: Before you start, please duplicate the official template to your Notion workspace. This template contains the required database structure.
+
+[👉 **Click here to get the fnglish-v2 Template**](https://dongyang-he.notion.site/fnglish-v2-temple-2e1dac93f867807981d9c31fb3cab43f)
+
 ### Step 1: Create Notion Integration
 1. Visit [Notion Integrations](https://www.notion.so/my-integrations)
 2. Click "**New integration**"
@@ -59,24 +63,22 @@ fnb
 4. Click "**Submit**" to create
 5. **Copy the Integration Token** (format: `secret_xxx...`) - this is your **Notion API Key**
 
-### Step 2: Create and Configure Notion Page
-1. Create a new page in Notion (for storing learning data)
-2. Click "**Share**" in the top-right corner of the page
-3. Click "**Add people, emails, groups, or integrations**"
-4. Search and select the integration you just created (e.g., "Fnglish Notebook")
-5. Set permissions to "**Can edit**"
-6. Click "**Invite**"
+### Step 2: Setup Notion Database and Template
+1. **Create a Database**: Create a new database in Notion (Full page or Inline).
+   - Ensure it has a **Text** property named `背面` (Back).
+   - Ensure it has a **Relation** property named `牌组` (Deck).
+   - Share this database with your Integration (click "..." -> "Add connections" -> search for your integration).
+2. **Create a Template Page**: Create a page that will serve as the icon/cover template.
+   - Set your desired Icon and Cover image on this page.
+   - Share this page with your Integration as well.
 
-### Step 3: Get Page ID
-1. Click "**Share**" in the top-right corner → "**Copy link**"
-2. The link format looks like: `https://www.notion.so/workspace/page-title-32-character-string?xxx`
-3. **The Page ID is the 32-character string in the URL**
-   
-   **Example**:
-   ```
-   Link: https://www.notion.so/myworkspace/English-Learning-1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p?pvs=4
-   Page ID: 1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p
-   ```
+### Step 3: Get IDs
+1. **Database ID**: Open your database as a full page. Copy the link.
+   - Link format: `https://www.notion.so/workspace/DATABASE_ID?v=...`
+   - The **Database ID** is the 32-character string before `?v=`.
+3. **Deck Page ID**: Open the specific Deck Page you want to link to. Copy the link.
+   - Link format: `https://www.notion.so/workspace/page-title-DECK_PAGE_ID`
+   - The **Deck Page ID** is the 32-character string at the end.
 
 ### ⚠️ Important Reminders
 - **You must add the Integration to the page first**, otherwise the API cannot access the page
@@ -103,7 +105,9 @@ On first run, the app will guide you through the configuration:
 2. **API Keys Configuration**:
    - **Grok API Key**: Get from [Grok Console](https://console.x.ai/) for AI word analysis
    - **Notion API Key**: Integration Token from Step 1 above (`secret_xxx...`)
-   - **Notion Page ID**: 32-character page ID from Step 3 above
+   - **Notion Database ID**: Database ID from Step 3
+   - **Notion Template ID**: Template Page ID from Step 3
+   - **Notion Deck ID**: Deck Page ID from Step 3
 
 ## 🚀 Usage
 
@@ -134,7 +138,7 @@ On first run, the app will guide you through the configuration:
 Configuration is stored in `~/.fnglish-notebook` and includes:
 - English proficiency level
 - API keys (Grok, Notion)
-- Notion page ID
+- Notion Database ID & Template ID
 
 ## 🔧 API Integration Details
 
@@ -154,8 +158,10 @@ Configuration is stored in `~/.fnglish-notebook` and includes:
 - **Adaptive**: Content difficulty adapted to your English level
 
 ### Notion Database
-- **Auto-creation**: Creates inline databases automatically
-- **Columns**: Word, Part of Speech, Definition, Example, Example Translation, Created Time
+- **User-provided Database**: Uses your existing database
+- **Structure**: Title property for the word, '背面' property for details, '牌组' property for relation
+- **Template Support**: Uses a template page for icon and cover styles
+- **Deck Linking**: Automatically links new words to a specific Deck Page
 - **Smart Deduplication**: Prevents duplicate entries
 
 ## 🎯 Learning Levels

@@ -17,7 +17,8 @@ export const App = () => {
             const exists = await configManager.exists();
             if (exists) {
                 const loadedConfig = await configManager.load();
-                if (loadedConfig) {
+                // Check if config matches new structure (has notionDatabaseId)
+                if (loadedConfig && loadedConfig.notionDatabaseId) {
                     setConfig(loadedConfig);
                 }
             }
